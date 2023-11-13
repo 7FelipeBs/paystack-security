@@ -1,9 +1,8 @@
 import axios from 'axios'
-import uApi from './uApi'
 
 var config = {
   url: '',
-  method: 'GET',
+  method: '',
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json;charset=UTF-8'
@@ -12,14 +11,25 @@ var config = {
 }
 
 export default {
-  httpGet(url, data) {
-    config.data = data
-    config.url = uApi.CONTENT_USER
+  httpGet(url, callback) {
+    config.method = 'GET'
+    config.url = url
 
-    console.log(config)
     axios(config)
       .then((response) => {
-        console.log(response)
+        if (callback) callback(response)
+      })
+      .catch((error) => console.log(error))
+  },
+
+  httpPost(url, data, callback) {
+    config.data = data
+    config.method = 'POST'
+    config.url = url
+
+    axios(config)
+      .then((response) => {
+        if (callback) callback(response)
       })
       .catch((error) => console.log(error))
   }
