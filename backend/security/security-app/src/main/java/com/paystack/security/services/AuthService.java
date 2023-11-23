@@ -1,7 +1,9 @@
 package com.paystack.security.services;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.http.HttpHeaders;
@@ -26,7 +28,6 @@ import com.paystack.security.views.UserDetailsView;
 import com.paystack.security.views.request.LoginRequestView;
 import com.paystack.security.views.request.SignupRequestView;
 import com.paystack.security.views.response.MessageResponseView;
-import com.paystack.security.views.response.UserInfoResponseView;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.NonNull;
@@ -72,12 +73,15 @@ public class AuthService {
 		List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority()).toList();
 
 		RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
-
-		ResponseCookie jwtRefreshCookie = jwtUtils.generateRefreshJwtCookie(refreshToken.getToken());
-
-		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-				.header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString()).body(new UserInfoResponseView(
-						userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles));
+		jwtUtils.generateRefreshJwtCookie(refreshToken.getToken());
+		
+		Map<String, String> map = new HashMap<>();
+		map.put("token", refreshToken.getToken());
+		map.put("expiration", refreshToken.getExpiryDate().toString());
+		
+		return ResponseEntity.ok()
+				.header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+				.body(map);
 	}
 
 	public ResponseEntity<?> logoutUser() {

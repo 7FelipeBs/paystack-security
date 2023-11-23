@@ -42,16 +42,16 @@ public class JwtUtils {
 
 	public ResponseCookie generateJwtCookie(UserDetailsView userPrincipal) {
 		String jwt = generateTokenFromUsername(userPrincipal.getUsername());
-		return generateCookie(jwtCookie, jwt, "/api");
+		return generateCookie(jwtCookie, jwt, "/api", true);
 	}
 
 	public ResponseCookie generateJwtCookie(Users user) {
 		String jwt = generateTokenFromUsername(user.getUsername());
-		return generateCookie(jwtCookie, jwt, "/api");
+		return generateCookie(jwtCookie, jwt, "/api", true);
 	}
 
 	public ResponseCookie generateRefreshJwtCookie(String refreshToken) {
-		return generateCookie(jwtRefreshCookie, refreshToken, "/api/auth/refreshtoken");
+		return generateCookie(jwtRefreshCookie, refreshToken, "/api/auth/refreshtoken", false);
 	}
 
 	public String getJwtFromCookies(HttpServletRequest request) {
@@ -74,6 +74,10 @@ public class JwtUtils {
 		return Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(token).getBody().getSubject();
 	}
 
+	private Key key() {
+		return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+	}
+
 	public boolean validateJwtToken(String authToken) {
 		try {
 			Jwts.parserBuilder().setSigningKey(key()).build().parse(authToken);
@@ -92,25 +96,21 @@ public class JwtUtils {
 	}
 
 	public String generateTokenFromUsername(String username) {
-
 		return Jwts.builder().setSubject(username).setIssuedAt(new Date())
 				.setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-				.signWith(key(), SignatureAlgorithm.HS512).compact();
-
+				.signWith(key(), SignatureAlgorithm.HS256).compact();
 	}
 
-	private Key key() {
-		return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+	private ResponseCookie generateCookie(String name, String value, String path, boolean secure) {
+		return ResponseCookie.from(name, value).path(path).maxAge(60 * 3).secure(true).httpOnly(secure).build();
 	}
-
-	private ResponseCookie generateCookie(String name, String value, String path) {
-		return ResponseCookie.from(name, value).path(path).maxAge(24 * 60 * 60).httpOnly(true).build();
-	}
-
+	
 	private String getCookieValueByName(HttpServletRequest request, String name) {
 		Cookie cookie = WebUtils.getCookie(request, name);
-		
-		return cookie != null ? cookie.getValue() : null;
+		if (cookie != null) {
+			return cookie.getValue();
+		} else {
+			return null;
+		}
 	}
-
 }

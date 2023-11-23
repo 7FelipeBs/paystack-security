@@ -10,5 +10,6 @@ export default {
   SIGNIN: BASE + '/api/auth/signin',
   SIGNUP: BASE + '/api/auth/signup',
   SIGNOUT: BASE + '/api/auth/signout',
-  SIGN_REFRESH_TOKEN: BASE + '/api/auth/refreshtoken'
+  GENERATE_TOKEN_REFRESH: BASE + '/api/auth/generateRefresh',
+  REFRESH_TOKEN: BASE + '/api/auth/refreshtoken'
 }

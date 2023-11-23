@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  overflow: hidden;
+}
+
+.bg-cobalt {
+  background-color: #054bb4;
+}
+
+.txt-cobalt {
+  color: #054bb4;
+}
+
+.bg-shuttle-gray {
+  background-color: #5d6169;
+}
+
+.txt-shuttle-gray {
+  color: #5d6169;
+}
+
+.bg-azure {
+  background-color: #2e5caf;
+}
+
+.txt-azure {
+  color: #2e5caf;
+}
+
+.bg-ship-cover {
+  background-color: #658cc2;
+}
+
+.txt-chip-cover {
+  color: #658cc2;
+}

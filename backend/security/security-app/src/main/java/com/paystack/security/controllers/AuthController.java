@@ -20,7 +20,7 @@ import lombok.NonNull;
 @RequestMapping("/api/auth")
 public class AuthController {
 	private final @NonNull AuthService authService;
-	
+
 	public AuthController(AuthService authService) {
 		this.authService = authService;
 	}
@@ -34,14 +34,14 @@ public class AuthController {
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequestView signUpRequest) {
 		return authService.signup(signUpRequest);
 	}
-	
-	  @PostMapping("/signout")
-	  public ResponseEntity<?> logoutUser() {
-		  return authService.logoutUser();
-	  }
 
-	  @PostMapping("/refreshtoken")
-	  public ResponseEntity<?> refreshtoken(HttpServletRequest request) {
-		  return authService.refreshtoken(request);
-	  }
+	@PostMapping("/signout")
+	public ResponseEntity<?> logoutUser() {
+		return authService.logoutUser();
+	}
+
+	@PostMapping("/refreshtoken")
+	public ResponseEntity<?> refreshtoken(HttpServletRequest request) {
+		return authService.refreshtoken(request);
+	}
 }

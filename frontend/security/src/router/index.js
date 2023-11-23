@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+// import { useAuthStore } from '../stores/authStore'
 import * as modules from './import'
 
 const router = createRouter({
@@ -12,10 +13,17 @@ const router = createRouter({
 
     {
       path: '/',
-      name: 'home',
+      name: 'index',
       component: modules.default.HomeView
     }
   ]
 })
+
+// router.beforeEach(async (to, from, next) => {
+//   let isAuthenticated = false
+//   if (!isAuthenticated && to.name !== 'Login') {
+//     return { name: 'login' }
+//   } else next()
+// })
 
 export default router

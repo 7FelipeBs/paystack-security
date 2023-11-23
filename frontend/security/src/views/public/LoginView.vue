@@ -28,14 +28,15 @@
 
           <div class="mt-8">
             <div>
-              <label for="user" class="block mb-2 text-sm text-gray-600 dark:text-gray-200"
+              <label for="username" class="block mb-2 text-sm text-gray-600 dark:text-gray-200"
                 >Username</label
               >
               <input
-                type="user"
-                name="user"
-                id="user"
+                type="username"
+                name="username"
+                id="username"
                 placeholder="Username"
+                hidden
                 class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40"
                 v-model="username"
               />
@@ -59,6 +60,8 @@
                 id="password"
                 placeholder="Password"
                 v-model="password"
+                hidden
+                autocomplete="new-password"
                 class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40"
               />
             </div>
@@ -88,7 +91,7 @@
 
             <div class="mt-6">
               <button
-                @click="signin()"
+                @click="btnSignin()"
                 class="w-full px-4 py-2 tracking-wide text-white transition-colors duration-200 transform bg-blue-500 rounded-md hover:bg-blue-400 focus:outline-none focus:bg-blue-400 focus:ring focus:ring-blue-300 focus:ring-opacity-50"
               >
                 Sign in
@@ -108,33 +111,49 @@
   </div>
 </template>
 
-<script>
-import uHttp from '../util/uHttp'
-import uApi from '../util/uApi'
+<script lang="js">
+import { useAuthStore } from '../../stores/authstore'
+import { userNavStore } from '../../stores/navStore'
+
+import { useCookies } from 'vue3-cookies'
+import { ref } from 'vue'
 
 export default {
   name: 'LoginView',
 
   setup() {
+    const userAuth = useAuthStore()
+    const username = ref('')
+    const password = ref('')
+    const { cookies } = useCookies()
+
+    const signinAuth = (callback) => {
+      userAuth.signin({ username: username.value, password: password.value }, callback)
+    }
     return {
-      username: '',
-      password: ''
+      username,
+      password,
+      signinAuth,
+      cookies
     }
   },
 
   methods: {
-    signin() {
-      let user = {
-        username: this.username,
-        password: this.password
-      }
+    btnSignin() {
+      this.signinAuth(this.callback)
+    },
 
-      uHttp.httpPost(uApi.SIGNIN, user, (resposta) => {
-        if (resposta.status === 200) {
-          this.$cookies.keys().join('\n')
-          this.$router.push({ path: '/' })
-        }
-      })
+    callback(response) {
+      if (response.status === 200) {
+        var date = new Date()
+        date.setMinutes(date.getMinutes() + 3)
+        this.cookies.set(
+          'refresh-token',
+          btoa(`${response.data.token.trim()};${response.data.expiration.trim()}`)
+        )
+        userNavStore().setNavState(true)
+        this.$router.push({ path: '/' })
+      }
     }
   }
 }
