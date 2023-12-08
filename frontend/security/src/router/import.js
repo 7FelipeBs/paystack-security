@@ -1,4 +1,4 @@
-import LoginView from '../views/public/LoginView.vue'
+import LoginView from '../views/public/Login/LoginView.vue'
 import HomeView from '../views/private/HomeView.vue'
 
 export default {

@@ -1,6 +1,7 @@
 package com.paystack.security.entitys;
 
-import java.time.Instant;
+
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,7 +24,7 @@ public class RefreshToken {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "refresh_token_id")
-	private long id;
+	private Long id;
 
 	@OneToOne
 	@JoinColumn(name = "user_id", referencedColumnName = "user_id")
@@ -33,6 +34,6 @@ public class RefreshToken {
 	private String token;
 
 	@Column(nullable = false)
-	private Instant expiryDate;
+	private LocalDateTime expiryDate;
 }
 

@@ -58,10 +58,6 @@ public class JwtUtils {
 		return getCookieValueByName(request, jwtCookie);
 	}
 
-	public String getJwtRefreshFromCookies(HttpServletRequest request) {
-		return getCookieValueByName(request, jwtRefreshCookie);
-	}
-
 	public ResponseCookie getCleanJwtCookie() {
 		return ResponseCookie.from(jwtCookie, null).path("/api").build();
 	}
@@ -107,10 +103,6 @@ public class JwtUtils {
 	
 	private String getCookieValueByName(HttpServletRequest request, String name) {
 		Cookie cookie = WebUtils.getCookie(request, name);
-		if (cookie != null) {
-			return cookie.getValue();
-		} else {
-			return null;
-		}
+		return cookie != null ? cookie.getValue() : null;
 	}
 }

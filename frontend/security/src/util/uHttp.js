@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-axios.defaults.withCredentials = true
 var config = {
   url: '',
   method: '',
@@ -12,7 +11,7 @@ var config = {
 }
 
 export default {
-  httpGet(url, callback) {
+  httpGet(url, callback, callbackError) {
     config.method = 'GET'
     config.url = url
 
@@ -20,10 +19,10 @@ export default {
       .then((response) => {
         if (callback) callback(response)
       })
-      .catch((error) => console.log(error))
+      .catch((error) => callbackError(error))
   },
 
-  httpPost(url, data, callback) {
+  httpPost(url, data, callback, callbackError) {
     config.data = data
     config.method = 'POST'
     config.url = url
@@ -32,10 +31,10 @@ export default {
       .then((response) => {
         if (callback) callback(response)
       })
-      .catch((error) => console.log(error))
+      .catch((error) => callbackError(error))
   },
 
-  httpPostPromise(url, data, callback) {
+  httpPostPromise(url, data, callback, callbackError) {
     config.data = data
     config.method = 'POST'
     config.url = url
@@ -46,7 +45,10 @@ export default {
           if (callback) callback(response)
           resolve(response)
         })
-        .catch((error) => reject(error))
+        .catch((error) => {
+          if (callbackError) callbackError(error)
+          reject(error)
+        })
     })
   }
 }

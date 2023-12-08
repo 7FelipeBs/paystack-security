@@ -1,7 +1,5 @@
 package com.paystack.security.views.request;
 
-import java.util.Set;
-
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -22,8 +20,6 @@ public class SignupRequestView {
 	  @Size(max = 50)
 	  @Email
 	  private String email;
-
-	  private Set<String> role;
 
 	  @NotBlank
 	  @Size(min = 6, max = 40)

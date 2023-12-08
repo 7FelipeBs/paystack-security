@@ -45,16 +45,22 @@
 <script lang="js">
 import { userNavStore } from '../../../stores/navStore'
 import { useAuthStore } from '../../../stores/authstore'
+import { useCookies } from 'vue3-cookies'
+
 export default {
   name: 'AppView',
 
   setup() {
+    const { cookies } = useCookies()
+
     const signout = (callback) => {
-      useAuthStore().signout(callback)
+      let refresh = cookies.get('refresh-token')
+      useAuthStore().signout(refresh, callback)
     }
 
     return {
-      signout
+      signout,
+      cookies
     }
   },
 
