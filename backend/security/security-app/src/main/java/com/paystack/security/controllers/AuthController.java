@@ -11,7 +11,6 @@ import com.paystack.security.services.AuthService;
 import com.paystack.security.views.request.LoginRequestView;
 import com.paystack.security.views.request.SignupRequestView;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 
@@ -20,7 +19,7 @@ import lombok.NonNull;
 @RequestMapping("/api/auth")
 public class AuthController {
 	private final @NonNull AuthService authService;
-	
+
 	public AuthController(AuthService authService) {
 		this.authService = authService;
 	}
@@ -34,14 +33,14 @@ public class AuthController {
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequestView signUpRequest) {
 		return authService.signup(signUpRequest);
 	}
-	
-	  @PostMapping("/signout")
-	  public ResponseEntity<?> logoutUser() {
-		  return authService.logoutUser();
-	  }
 
-	  @PostMapping("/refreshtoken")
-	  public ResponseEntity<?> refreshtoken(HttpServletRequest request) {
-		  return authService.refreshtoken(request);
-	  }
+	@PostMapping("/signout")
+	public ResponseEntity<?> logoutUser(@RequestBody String refreshToken) {
+		return authService.logoutUser(refreshToken);
+	}
+
+	@PostMapping("/refreshtoken")
+	public ResponseEntity<?> refreshtoken(@RequestBody String refreshToken) {
+		return authService.refreshtoken(refreshToken);
+	}
 }

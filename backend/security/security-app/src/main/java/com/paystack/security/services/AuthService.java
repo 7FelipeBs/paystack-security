@@ -1,24 +1,26 @@
 package com.paystack.security.services;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import org.springframework.http.HttpHeaders;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.paystack.security.entitys.CookieUsers;
 import com.paystack.security.entitys.RefreshToken;
 import com.paystack.security.entitys.Roles;
 import com.paystack.security.entitys.Users;
 import com.paystack.security.enums.ERole;
-import com.paystack.security.exceptions.TokenRefreshException;
 import com.paystack.security.repositorys.IRolesRepository;
 import com.paystack.security.repositorys.IUsersRepository;
 import com.paystack.security.utils.JwtUtils;
@@ -26,13 +28,14 @@ import com.paystack.security.views.UserDetailsView;
 import com.paystack.security.views.request.LoginRequestView;
 import com.paystack.security.views.request.SignupRequestView;
 import com.paystack.security.views.response.MessageResponseView;
-import com.paystack.security.views.response.UserInfoResponseView;
 
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.NonNull;
 
 @Service
 public class AuthService {
+
+	private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
 	private final @NonNull AuthenticationManager authenticationManager;
 
@@ -41,23 +44,50 @@ public class AuthService {
 	private final @NonNull IRolesRepository rolesRepository;
 
 	private final @NonNull PasswordEncoder encoder;
-	
+
 	private final @NonNull RefreshTokenService refreshTokenService;
+
+	private final @NonNull CookieUsersService cookieUsersService;
 
 	private final @NonNull JwtUtils jwtUtils;
 
 	public AuthService(AuthenticationManager authenticationManager, JwtUtils jwtUtils, IUsersRepository usersRepository,
-			IRolesRepository rolesRepository, PasswordEncoder encoder, RefreshTokenService refreshTokenService) {
+			IRolesRepository rolesRepository, PasswordEncoder encoder, RefreshTokenService refreshTokenService,
+			CookieUsersService cookieUsersService) {
 		this.usersRepository = usersRepository;
 		this.rolesRepository = rolesRepository;
 
 		this.refreshTokenService = refreshTokenService;
-		
+		this.cookieUsersService = cookieUsersService;
+
 		this.authenticationManager = authenticationManager;
 		this.jwtUtils = jwtUtils;
 		this.encoder = encoder;
 	}
 
+	@Transactional
+	public ResponseEntity<?> signup(SignupRequestView signUpRequest) {
+		if (Boolean.TRUE.equals(usersRepository.existsByUsername(signUpRequest.getUsername()))) {
+			return ResponseEntity.badRequest().body(new MessageResponseView("Error: Username is already taken!"));
+		}
+
+		if (Boolean.TRUE.equals(usersRepository.existsByEmail(signUpRequest.getEmail()))) {
+			return ResponseEntity.badRequest().body(new MessageResponseView("Error: Email is already in use!"));
+		}
+
+		Users user = new Users(signUpRequest.getUsername(), signUpRequest.getEmail(), encoder.encode(signUpRequest.getPassword()));
+
+		Set<Roles> roles = new HashSet<>();
+		Roles userRole = rolesRepository.findByName(ERole.ROLE_USER).orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+		roles.add(userRole);
+
+		user.setRoles(roles);
+		usersRepository.save(user);
+
+		return ResponseEntity.ok(new MessageResponseView("User registered successfully!"));
+	}
+
+	@Transactional
 	public ResponseEntity<?> signin(LoginRequestView loginRequest) {
 
 		Authentication authentication = authenticationManager.authenticate(
@@ -69,97 +99,65 @@ public class AuthService {
 
 		ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
 
-		List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority()).toList();
+		RefreshToken refreshToken = refreshTokenService.create(userDetails.getId());
 
-		RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+		var refreshTokenCookie = jwtUtils.generateRefreshJwtCookie(refreshToken.getToken());
 
-		ResponseCookie jwtRefreshCookie = jwtUtils.generateRefreshJwtCookie(refreshToken.getToken());
-
-		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-				.header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString()).body(new UserInfoResponseView(
-						userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles));
+		var cryptEncoder = new BCryptPasswordEncoder();
+		cookieUsersService
+				.create(new CookieUsers(refreshTokenCookie.getValue(), cryptEncoder.encode(jwtCookie.getValue()),
+						LocalDateTime.now().plus(jwtCookie.getMaxAge()), userDetails.getId()));
+		
+		var tokenCookies = refreshToken.getToken().concat(";").concat(refreshToken.getExpiryDate().toString());
+		return ResponseEntity.ok().body(tokenCookies);
 	}
 
-	public ResponseEntity<?> logoutUser() {
-		Object principle = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if (!"anonymousUser".equals(principle.toString())) {
-			Long userId = ((UserDetailsView) principle).getId();
-			refreshTokenService.deleteByUserId(userId);
+	@Transactional
+	public ResponseEntity<?> logoutUser(String token) {
+		String msg = "You've been signed out!";
+		try {
+			var entity = refreshTokenService.findByToken(token.substring(1, token.length() - 1));
+			if (entity == null) {
+				return ResponseEntity.ok().body(new MessageResponseView(msg));
+			}
+
+			refreshTokenService.deleteByUserId(entity.getUser().getId());
+			cookieUsersService.deleteByUser(entity.getUser());
+		} catch (Exception e) {
+			log.debug(e.getMessage());
 		}
 
-		ResponseCookie jwtCookie = jwtUtils.getCleanJwtCookie();
-		ResponseCookie jwtRefreshCookie = jwtUtils.getCleanJwtRefreshCookie();
-
-		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-				.header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
-				.body(new MessageResponseView("You've been signed out!"));
+		return ResponseEntity.ok().body(new MessageResponseView(msg));
 	}
 
-	public ResponseEntity<?> refreshtoken(HttpServletRequest request) {
-		String refreshToken = jwtUtils.getJwtRefreshFromCookies(request);
+	@Transactional
+	public ResponseEntity<?> refreshtoken(String token) {
+		try {
+			if (token == null) return null;
 
-		if ((refreshToken != null) && (refreshToken.length() > 0)) {
-			return refreshTokenService.findByToken(refreshToken).map(refreshTokenService::verifyExpiration)
-					.map(RefreshToken::getUser).map(user -> {
-						ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(user);
+			RefreshToken refresh = refreshTokenService.findByToken(token.substring(1, token.length() - 1));
 
-						return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-								.body(new MessageResponseView("Token is refreshed successfully!"));
-					}).orElseThrow(() -> new TokenRefreshException(refreshToken, "Refresh token is not in database!"));
+			if (refresh == null) return null;
+
+			// valid date expiration token
+			refreshTokenService.verifyExpiration(refresh);
+
+			// if refresh is valid, generate new cookie token
+			var cookiesJwt = jwtUtils.generateJwtCookie(refresh.getUser());
+
+			// update refresh together with cookieUser
+			var oldToken = refresh.getToken();
+			refresh = refreshTokenService.update(refresh);
+			cookieUsersService.update(refresh, oldToken, cookiesJwt);
+			
+
+			var tokenCookies = refresh.getToken().concat(";").concat(refresh.getExpiryDate().toString());
+			return ResponseEntity.ok().body(tokenCookies);
+		} catch (Exception e) {
+			log.debug(e.getMessage());
 		}
-
-		return ResponseEntity.badRequest().body(new MessageResponseView("Refresh Token is empty!"));
+		return ResponseEntity.badRequest()
+				.body(new MessageResponseView("Refresh Token is invalid! Please make a signin!"));
 	}
 
-	public ResponseEntity<?> signup(SignupRequestView signUpRequest) {
-		if (Boolean.TRUE.equals(usersRepository.existsByUsername(signUpRequest.getUsername()))) {
-			return ResponseEntity.badRequest().body(new MessageResponseView("Error: Username is already taken!"));
-		}
-
-		if (Boolean.TRUE.equals(usersRepository.existsByEmail(signUpRequest.getEmail()))) {
-			return ResponseEntity.badRequest().body(new MessageResponseView("Error: Email is already in use!"));
-		}
-
-		// Create new user's account
-		Users user = new Users(signUpRequest.getUsername(), signUpRequest.getEmail(),
-				encoder.encode(signUpRequest.getPassword()));
-
-		Set<String> strRoles = signUpRequest.getRole();
-		Set<Roles> roles = new HashSet<>();
-
-		final String MsgError = "Error: Role is not found.";
-		if (strRoles == null) {
-			Roles userRole = rolesRepository.findByName(ERole.ROLE_USER)
-					.orElseThrow(() -> new RuntimeException(MsgError));
-			roles.add(userRole);
-		} else {
-
-			strRoles.forEach(role -> {
-
-				switch (role) {
-				case "admin":
-					Roles adminRole = rolesRepository.findByName(ERole.ROLE_ADMIN)
-							.orElseThrow(() -> new RuntimeException(MsgError));
-					roles.add(adminRole);
-
-					break;
-				case "mod":
-					Roles modRole = rolesRepository.findByName(ERole.ROLE_MODERATOR)
-							.orElseThrow(() -> new RuntimeException(MsgError));
-					roles.add(modRole);
-
-					break;
-				default:
-					Roles userRole = rolesRepository.findByName(ERole.ROLE_USER)
-							.orElseThrow(() -> new RuntimeException(MsgError));
-					roles.add(userRole);
-				}
-			});
-		}
-
-		user.setRoles(roles);
-		usersRepository.save(user);
-
-		return ResponseEntity.ok(new MessageResponseView("User registered successfully!"));
-	}
 }

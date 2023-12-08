@@ -1,5 +1,7 @@
 package com.paystack.security.configs;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,6 +14,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.paystack.security.configs.auths.AuthEntryPointJwt;
 import com.paystack.security.configs.auths.AuthTokenFilters;
@@ -19,21 +24,22 @@ import com.paystack.security.services.UsersDetailsService;
 import com.paystack.security.utils.JwtUtils;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 	private final @NonNull JwtUtils jwtUtils;
 	private final @NonNull UsersDetailsService usersDetailsService;
 	private final @NonNull AuthEntryPointJwt authEntryPointJwt;
-	
-	public SecurityConfig(JwtUtils jwtUtils, UsersDetailsService usersDetailsService, AuthEntryPointJwt authEntryPointJwt) {
-		this.jwtUtils = jwtUtils;
-		this.usersDetailsService = usersDetailsService;
-		this.authEntryPointJwt = authEntryPointJwt;
-	}
 
-	
+    private static final String[] WHITELISTED_URLS = {
+    		"/api/auth/**",
+    		"/api/test/**"
+    };
+
+    
 	@Bean
 	public AuthTokenFilters authenticationJwtTokenFilter() {
 		return new AuthTokenFilters(jwtUtils, usersDetailsService);
@@ -61,11 +67,10 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http.csrf(csrf -> csrf.disable())
+		http.cors().and().csrf(csrf -> csrf.disable())
 				.exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPointJwt))
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
-						.requestMatchers("/api/test/**").permitAll().anyRequest().authenticated());
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and())
+				.authorizeHttpRequests(auth -> auth.requestMatchers(WHITELISTED_URLS).permitAll().anyRequest().authenticated());
 
 		http.authenticationProvider(authenticationProvider());
 
@@ -73,4 +78,18 @@ public class SecurityConfig {
 
 		return http.build();
 	}
+
+	
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:9000"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Access-Control-Allow-Origin", "Content-Type",
+                "X-Requested-With", "accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+        configuration.setAllowCredentials(false);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }

@@ -1,7 +1,6 @@
 package com.paystack.security.services;
 
-import java.time.Instant;
-import java.util.Optional;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -23,39 +22,54 @@ public class RefreshTokenService {
 
 	private final @NonNull IRefreshTokenRepository refreshTokenRepository;
 	private final @NonNull IUsersRepository usersRepository;
-
-	public RefreshTokenService(IUsersRepository usersRepository, IRefreshTokenRepository refreshTokenRepository) {
+	private final @NonNull CookieUsersService cookieUsersService;
+	
+	public RefreshTokenService(IUsersRepository usersRepository, IRefreshTokenRepository refreshTokenRepository, CookieUsersService cookieUsersService) {
 		this.usersRepository = usersRepository;
 		this.refreshTokenRepository = refreshTokenRepository;
+		this.cookieUsersService = cookieUsersService;
 	}
 
-	public Optional<RefreshToken> findByToken(String token) {
+	public RefreshToken findByToken(String token) {
 		return refreshTokenRepository.findByToken(token);
 	}
 
-	public RefreshToken createRefreshToken(Long userId) {
+	public RefreshToken create(Long userId) {
 		RefreshToken refreshToken = new RefreshToken();
-		
+
 		var users = usersRepository.findById(userId).orElse(null);
-		
-		if(users == null) return null;
-		
+
+		if (users == null)
+			return null;
+
 		refreshToken.setUser(users);
-		refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
+		refreshToken.setExpiryDate(LocalDateTime.now().plusSeconds(refreshTokenDurationMs));
 		refreshToken.setToken(UUID.randomUUID().toString());
 
-		refreshToken = refreshTokenRepository.save(refreshToken);
-		return refreshToken;
+		return refreshTokenRepository.save(refreshToken);
+	}
+	
+	public RefreshToken update(RefreshToken refreshToken) {
+		if(refreshToken.getId() == null)  {
+			throw new TokenRefreshException(refreshToken.getToken(),
+					"Error Refresh token. Please make a new signin request!");
+		}
+		
+		refreshToken.setExpiryDate(LocalDateTime.now().plusSeconds(refreshTokenDurationMs));
+		refreshToken.setToken(UUID.randomUUID().toString());
+
+		return refreshTokenRepository.save(refreshToken);
 	}
 
-	public RefreshToken verifyExpiration(RefreshToken token) {
-		if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
-			refreshTokenRepository.delete(token);
-			throw new TokenRefreshException(token.getToken(),
-					"Refresh token was expired. Please make a new signin request");
+	public void verifyExpiration(RefreshToken entity) {
+		if (entity.getExpiryDate().isBefore(LocalDateTime.now())) {
+			
+			cookieUsersService.deleteByUser(entity.getUser());
+			refreshTokenRepository.deleteById(entity.getId());
+			
+			throw new TokenRefreshException(entity.getToken(),
+					"Refresh token was expired. Please make a new signin request!");
 		}
-
-		return token;
 	}
 
 	@Transactional
