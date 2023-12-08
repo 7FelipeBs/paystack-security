@@ -87,7 +87,6 @@
           >
             Sign in
           </button>
-          .
         </span>
       </div>
     </div>
@@ -146,13 +145,8 @@ export default {
     },
 
     callback(response) {
-      if (response.status === 200) {
-        // let cookiesArray = response.data.split(';')
-        // let data = new Date(cookiesArray[1])
-        // let token = cookiesArray[0]
-        // this.cookies.set('refresh-token', token).set('refresh-token', token, data)
-        // userNavStore().setNavState(true)
-        // this.$router.push({ path: '/' })
+      if (response.status === 200 || response.status) {
+        this.isScreenSelected = false
       }
     },
 

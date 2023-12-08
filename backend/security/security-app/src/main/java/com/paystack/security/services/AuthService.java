@@ -92,11 +92,11 @@ public class AuthService {
 
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 
 		UserDetailsView userDetails = (UserDetailsView) authentication.getPrincipal();
-
+		
+		deleteTokens(userDetails.getId());
 		ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
 
 		RefreshToken refreshToken = refreshTokenService.create(userDetails.getId());
@@ -120,15 +120,23 @@ public class AuthService {
 			if (entity == null) {
 				return ResponseEntity.ok().body(new MessageResponseView(msg));
 			}
+			
+			deleteTokens(entity.getUser().getId());
 
-			refreshTokenService.deleteByUserId(entity.getUser().getId());
-			cookieUsersService.deleteByUser(entity.getUser());
 		} catch (Exception e) {
 			log.debug(e.getMessage());
 		}
 
 		return ResponseEntity.ok().body(new MessageResponseView(msg));
 	}
+	
+	
+	void deleteTokens(Long idUser) {
+		refreshTokenService.deleteByUserId(idUser);
+		cookieUsersService.deleteByUser(idUser);
+	}
+	
+	
 
 	@Transactional
 	public ResponseEntity<?> refreshtoken(String token) {
