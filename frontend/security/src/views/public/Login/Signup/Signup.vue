@@ -8,94 +8,81 @@
       </div>
 
       <div class="mt-6">
-        <div>
-          <label for="username" class="block mb-2 text-sm text-gray-600 dark:text-gray-200"
-            >Username</label
-          >
-          <input
-            type="username"
-            name="username"
-            id="username"
-            placeholder="Username"
-            hidden
-            class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40"
-            v-model="username"
-          />
-        </div>
-
-        <div class="mt-6">
-          <label for="username" class="block mb-2 text-sm text-gray-600 dark:text-gray-200"
-            >Email</label
-          >
-          <input
-            type="email"
-            name="email"
-            id="email"
-            placeholder="Email@address.com"
-            hidden
-            class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40"
-            v-model="email"
-          />
-        </div>
-
-        <div class="mt-6">
-          <label for="username" class="block mb-2 text-sm text-gray-600 dark:text-gray-200"
-            >Password</label
-          >
-          <input
-            type="password"
-            name="password"
-            id="password"
-            placeholder="Password"
-            v-model="password"
-            hidden
-            autocomplete="new-password"
-            class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40"
-          />
-        </div>
-
-        <div class="mt-6">
-          <label for="username" class="block mb-2 text-sm text-gray-600 dark:text-gray-200"
-            >Confirm Password</label
-          >
-          <input
-            type="password"
-            name="confirmPassword"
-            id="confirmPassword"
-            placeholder="Confirm Password"
-            v-model="confirmPassword"
-            hidden
-            autocomplete="new-password"
-            class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40"
-          />
-        </div>
-
-        <div class="mt-6">
-          <button
-            @click="btnSignup()"
-            class="w-full px-4 py-2 tracking-wide text-white transition-colors duration-200 transform bg-blue-500 rounded-md hover:bg-blue-400 focus:outline-none focus:bg-blue-400 focus:ring focus:ring-blue-300 focus:ring-opacity-50"
-          >
-            Sign up
-          </button>
-        </div>
-
-        <span class="mt-6 text-sm text-center text-gray-400">
-          You have account?
-          <button
-            class="text-blue-500 focus:outline-none focus:underline hover:underline"
-            @click="btnDisableScreen"
-          >
-            Sign in
-          </button>
-        </span>
+        <c-input
+          nameValue="username"
+          idValue="username"
+          refValue="username"
+          label="Username"
+          placeholder="Username"
+          v-model="username"
+          @update:modelValue="username = $event"
+        />
       </div>
+
+      <div class="mt-6">
+        <c-input
+          nameValue="email"
+          idValue="email"
+          refValue="email"
+          label="Email"
+          placeholder="Email"
+          type="email"
+          v-model="email"
+          @update:modelValue="email = $event"
+        />
+      </div>
+
+      <div class="mt-6">
+        <c-input
+          nameValue="password"
+          idValue="password"
+          refValue="password"
+          label="Password"
+          placeholder="Password"
+          type="password"
+          v-model="password"
+          @update:modelValue="password = $event"
+        />
+      </div>
+
+      <div class="mt-6">
+        <c-input
+          nameValue="confirmPassword"
+          idValue="confirmPassword"
+          refValue="confirmPassword"
+          label="Confirm Password"
+          placeholder="Confirm Password"
+          type="password"
+          v-model="confirmPassword"
+          @update:modelValue="confirmPassword = $event"
+        />
+      </div>
+
+      <div class="mt-6">
+        <button
+          @click="btnSignup()"
+          class="w-full px-4 py-2 tracking-wide text-white transition-colors duration-200 transform bg-blue-500 rounded-md hover:bg-blue-400 focus:outline-none focus:bg-blue-400 focus:ring focus:ring-blue-300 focus:ring-opacity-50"
+        >
+          Sign up
+        </button>
+      </div>
+
+      <span class="mt-6 text-sm text-center text-gray-400">
+        You have account?
+        <button
+          class="text-blue-500 focus:outline-none focus:underline hover:underline"
+          @click="btnDisableScreen"
+        >
+          Sign in
+        </button>
+      </span>
     </div>
   </div>
 </template>
 
 <script lang="js">
 import { useAuthStore } from '../../../../stores/authstore'
-// import { userNavStore } from '../../../../stores/navStore'
+import CInput from '../../../../components/cInput.vue'
 
 import { useCookies } from 'vue3-cookies'
 import { ref } from 'vue'
@@ -164,7 +151,9 @@ export default {
         this.$emit('update:modelValue', value)
       }
     }
-  }
+  },
+
+  components: { CInput }
 }
 </script>
 
