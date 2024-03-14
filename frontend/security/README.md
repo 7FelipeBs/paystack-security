@@ -1,7 +1,7 @@
 
 # PayStack - Security (FRONT-END)
 
-Aqui é a base inicial do projeto para subir o sistema, os comandops resumidamente para subir o projeto na sua maquina.
+Aqui é a base inicial do projeto para subir o sistema, os comandos para subir o projeto.
 
 ## Instalação do Projeto
 
