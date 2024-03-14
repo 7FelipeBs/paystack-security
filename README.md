@@ -8,7 +8,8 @@ PayStack é um projeto separado em muitas partes no qual, cada parte vai abordar
 ## Aprendizados
 
 Para cada parte do sistema abordei uma parte de estudo sobre questão de segurança para evita o maximo possivel ter problemas de vazamento de dados nos dados do cliente e também trazer os recursos mais recente possível para as novas versões tanto do Vue como do Spring com Java, e estudo sobre Tailwind que comecei a estudar também.
-Outra questão foi todo o código ser feito em inglês para estudos e práticas no idioma.
+
+<pre>Projeto esta todo em inglês para fins de estudo. </pre>
 
 BACK-END
 - Web Token
