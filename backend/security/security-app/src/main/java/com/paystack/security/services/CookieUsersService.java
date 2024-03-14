@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import com.paystack.security.entitys.CookieUsers;
 import com.paystack.security.entitys.RefreshToken;
-import com.paystack.security.entitys.Users;
 import com.paystack.security.repositorys.ICookieUsersRepository;
 
 import jakarta.transaction.Transactional;
@@ -58,7 +57,7 @@ public class CookieUsersService {
 	}
 
 	@Transactional
-	public void deleteByUser(Users user) {
-		cookieUsersRepository.deleteByUser(user.getId());
+	public void deleteByUser(Long userId) {
+		cookieUsersRepository.deleteByUser(userId);
 	}
 }

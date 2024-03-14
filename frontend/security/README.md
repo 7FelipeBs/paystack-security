@@ -1,23 +1,22 @@
-## Project Setup
+
+# PayStack - Security (FRONT-END)
+
+Aqui é a base inicial do projeto para subir o sistema, os comandos para subir o projeto.
+
+## Instalação do Projeto
 
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+### Compilar o projeto em Desenvolvimento
 
 ```sh
 npm run dev
 ```
 
-### Compile and Minify for Production
+### Compilar o projeto em Produção
 
 ```sh
 npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
 ```

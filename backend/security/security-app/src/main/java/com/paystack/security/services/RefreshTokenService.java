@@ -64,7 +64,7 @@ public class RefreshTokenService {
 	public void verifyExpiration(RefreshToken entity) {
 		if (entity.getExpiryDate().isBefore(LocalDateTime.now())) {
 			
-			cookieUsersService.deleteByUser(entity.getUser());
+			cookieUsersService.deleteByUser(entity.getUser().getId());
 			refreshTokenRepository.deleteById(entity.getId());
 			
 			throw new TokenRefreshException(entity.getToken(),

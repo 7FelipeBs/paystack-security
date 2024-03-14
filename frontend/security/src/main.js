@@ -4,7 +4,7 @@ import './assets/icons/fontAwesome'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import VueCookies from 'vue3-cookies'
-
+import Notifications from 'notiwind'
 ///////// COOKIES /////////
 import { globalCookiesConfig } from 'vue3-cookies'
 
@@ -27,6 +27,7 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 app.use(VueCookies)
+app.use(Notifications)
 
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.mount('#app')

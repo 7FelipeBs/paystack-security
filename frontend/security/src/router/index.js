@@ -24,45 +24,50 @@ const router = createRouter({
   ]
 })
 
+function validTokenLogin(response, cookies, next) {
+  if (response.data) {
+    let cookiesArray = response.data.split(';')
+    let data = new Date(cookiesArray[1])
+    let token = cookiesArray[0]
+
+    cookies.set('refresh-token', token).set('refresh-token', token, data)
+    userNavStore().setNavState(true)
+
+    return true
+  }
+
+  cookies.remove('refresh-token')
+  userNavStore().setNavState(false)
+  next({ name: 'login' })
+  return false
+}
+
+function validTokenIndex(response, cookies, next) {
+  cookies.remove('refresh-token')
+  userNavStore().setNavState(false)
+  next({ name: 'index' })
+}
+
 router.beforeEach(async (to, from, next) => {
   const { cookies } = useCookies()
 
   let token = cookies.get('refresh-token')
 
   if (!token && to.name !== 'login') {
-    next({ name: 'login' })
-  } else if (token && to.name !== 'login') {
-    await useAuthStore().refresh(token, (response) => {
-      console.log('response1:', response)
+    if (from.path === '/' && to.path === '/') {
+      return next({ name: 'login' })
+    }
+  }
 
-      if (response.data) {
-        let cookiesArray = response.data.split(';')
-        let data = new Date(cookiesArray[1])
-        let token = cookiesArray[0]
-        cookies.set('refresh-token', token).set('refresh-token', token, data)
-        userNavStore().setNavState(true)
-      } else {
-        cookies.remove('refresh-token')
-        userNavStore().setNavState(false)
-        next({ name: 'login' })
-      }
+  if (token && to.name !== 'login') {
+    await useAuthStore().refresh(token, (response) => {
+      return validTokenLogin(response, cookies, next)
     })
-  } else if (token && to.name === 'login') {
-    await useAuthStore().refresh(token, (response) => {
-      console.log('response2:', response)
+  }
 
-      if (response.data) {
-        let cookiesArray = response.data.split(';')
-        let data = new Date(cookiesArray[1])
-        let token = cookiesArray[0]
-        cookies.set('refresh-token', token).set('refresh-token', token, data)
-        userNavStore().setNavState(true)
-        next({ name: 'index' })
-      } else {
-        cookies.remove('refresh-token')
-        userNavStore().setNavState(false)
-        next({ name: 'index' })
-      }
+  if (token && to.name === 'login') {
+    await useAuthStore().refresh(token, (response) => {
+      return validTokenIndex(response, cookies, next)
     })
   }
 
