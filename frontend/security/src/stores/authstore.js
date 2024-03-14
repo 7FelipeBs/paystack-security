@@ -11,7 +11,7 @@ export const useAuthStore = defineStore('authStore', () => {
   })
 
   const signin = (data, callback, callbackError) =>
-    uHttp.httpPost(
+    uHttp.httpPostPromise(
       uApi.SIGNIN,
       data,
       (response) => {
@@ -24,7 +24,7 @@ export const useAuthStore = defineStore('authStore', () => {
     )
 
   const signout = (data, callback, callbackError) =>
-    uHttp.httpPost(
+    uHttp.httpPostPromise(
       uApi.SIGNOUT,
       data,
       (response) => {
@@ -37,7 +37,7 @@ export const useAuthStore = defineStore('authStore', () => {
     )
 
   const signup = (data, callback, callbackError) =>
-    uHttp.httpPost(
+    uHttp.httpPostPromise(
       uApi.SIGNUP,
       data,
       (response) => {

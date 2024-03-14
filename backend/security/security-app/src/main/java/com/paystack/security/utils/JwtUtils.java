@@ -98,7 +98,7 @@ public class JwtUtils {
 	}
 
 	private ResponseCookie generateCookie(String name, String value, String path, boolean secure) {
-		return ResponseCookie.from(name, value).path(path).maxAge(60 * 3).secure(true).httpOnly(secure).build();
+		return ResponseCookie.from(name, value).path(path).maxAge(60 * 10).secure(true).httpOnly(secure).build();
 	}
 	
 	private String getCookieValueByName(HttpServletRequest request, String name) {

@@ -1,6 +1,6 @@
 <template>
   <div class="flex items-center w-full max-w-md px-6 mx-auto lg:w-2/6" v-if="isScreenSelected">
-    <div class="flex-1">
+    <form class="flex-1" @submit.prevent="validFields">
       <div class="text-center">
         <h2 class="text-4xl font-bold text-center text-gray-700 dark:text-white">PayStack</h2>
 
@@ -31,11 +31,11 @@
           @update:modelValue="password = $event"
         />
 
-        <a
+        <!-- <a
           href="#"
           class="text-sm text-gray-400 focus:text-blue-500 hover:text-blue-500 hover:underline"
           >Forgot password?</a
-        >
+        > -->
       </div>
 
       <!-- FEATURE COMING-->
@@ -80,17 +80,22 @@
           Sign up
         </button>
       </span>
-    </div>
+    </form>
+
+    <c-notification ref="refNotification" />
   </div>
 </template>
 
 <script lang="js">
+import CInput from '../../../../components/cInput.vue'
+import CNotification from '../../../../components/cNotification.vue'
+
 import { useAuthStore } from '../../../../stores/authstore'
 import { userNavStore } from '../../../../stores/navStore'
-import CInput from '../../../../components/cInput.vue'
 import { useCookies } from 'vue3-cookies'
 
 import { ref } from 'vue'
+import util from '../../../../util/uUtil'
 
 export default {
   name: 'SigninLoginView',
@@ -108,6 +113,8 @@ export default {
     const password = ref('')
     const { cookies } = useCookies()
 
+    const loginValid = ref(true)
+
     const signinAuth = (callback, callbackError) => {
       userAuth.signin(
         { username: username.value, password: password.value },
@@ -119,21 +126,40 @@ export default {
       username,
       password,
       signinAuth,
+      loginValid,
       cookies
     }
   },
 
   methods: {
+    validFields() {
+      if (this.loginValid) this.signinAuth(this.callback, this.callbackError)
+    },
+
     btnDisableScreen() {
       this.isScreenSelected = false
     },
 
     btnSignin() {
-      this.signinAuth(this.callback, this.callbackError)
+      this.loginValid = true
+
+      if (!util.isValidValue(this.username)) {
+        this.$refs.refNotification.showMsgBotError(`Username field is required!`, `Error`)
+        this.loginValid = false
+      }
+
+      if (!util.isValidValue(this.password)) {
+        this.$refs.refNotification.showMsgBotError(`Password field is required!`, `Error`)
+        this.loginValid = false
+      }
+
+      return this.loginValid
     },
 
     callback(response) {
       if (response.status === 200) {
+        this.$refs.refNotification.showMsgBotSucess(`Login with sucess!`, `Sucess`)
+
         let cookiesArray = response.data.split(';')
         let data = new Date(cookiesArray[1])
         let token = cookiesArray[0]
@@ -146,6 +172,10 @@ export default {
     },
 
     callbackError() {
+      this.$refs.refNotification.showMsgBotError(
+        `Login failed. Please check your credentials and try again!`,
+        `Error`
+      )
       this.$router.push({ path: '/login' })
     }
   },
@@ -161,7 +191,7 @@ export default {
     }
   },
 
-  components: { CInput }
+  components: { CInput, CNotification }
 }
 </script>
 
