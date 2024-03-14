@@ -3,8 +3,7 @@
 
 PayStack é um projeto separado em muitas partes no qual, cada parte vai abordar uma ideia sobre a construção de um sistema, gostaria de realizar em microserviço mas para afins de estudo sobre etapas de um sistema optei por não fazer tudo em um só. 
 
-
-
+![image](https://github.com/7FelipeBs/paystack/assets/55725150/9f2220fa-b34b-4728-9d3b-65d440eacf0b)
 
 ## Aprendizados
 
