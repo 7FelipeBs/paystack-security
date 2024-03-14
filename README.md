@@ -49,4 +49,4 @@ O docker já esta implementado a base dele no backend, mas está em desenvolvime
 
 ## Suporte
 
-Para suporte, mande um email para programming1129@gmail.com caso tenha problemas.
+Para suporte, mande um email para felipe7bs@gmail.com caso tenha problemas.
