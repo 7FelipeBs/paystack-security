@@ -7,6 +7,15 @@
         <p class="mt-3 text-gray-500 dark:text-gray-300">Welcome</p>
       </div>
 
+      <!-- <div class="mt-2">
+        <button
+          @click="btnSignin()"
+          class="px-2 py-1 tracking-wide text-white transition-colors duration-200 transform bg-blue-500 rounded-md hover:bg-blue-400 focus:outline-none focus:bg-blue-400 focus:ring focus:ring-blue-300 focus:ring-opacity-50"
+        >
+          QR CODE
+        </button>
+      </div> -->
+
       <div class="mt-6">
         <c-input
           nameValue="username"
