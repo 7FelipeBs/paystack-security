@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isValidNav" class="flex justify-between mb-6 shadow-xl w-full h-16 bg-white">
+  <div v-if="isValidNav" class="flex justify-between mb-20 shadow-xl w-full h-16 bg-white">
     <ul class="flex my-auto ml-6">
       <li class="my-auto mr-6">
         <button class="txt-chip-cover" @click="openHomePage()">

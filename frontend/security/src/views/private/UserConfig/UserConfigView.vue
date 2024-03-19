@@ -1,29 +1,31 @@
 <template>
-  <div class="space-y-5">
+  <div class="space-y-5" style="margin: 0px 5%">
     <div class="border-b border-b-gray-200">
-      <ul class="-mb-px flex items-center justify-center text-center gap-4 text-md font-medium">
-        <li class="flex-1 txt-cobalt text-tab" @click="openTab('profile')">
+      <ul class="-mb-px flex items-center justify-center text-center gap-4 text-lg font-medium">
+        <li :class="getClassTabSelect('profile')" @click="openTab('profile')">
           <span>Profile</span>
         </li>
-        <li class="flex-1 txt-cobalt text-tab" @click="openTab('security')">
+        <li :class="getClassTabSelect('security')" @click="openTab('security')">
           <span>Security</span>
         </li>
-        <li class="flex-1 txt-cobalt text-tab" @click="openTab('notification')">
+        <li :class="getClassTabSelect('notification')" @click="openTab('notification')">
           <span>Notification</span>
         </li>
       </ul>
     </div>
 
     <div>
-      <div v-if="profileOpen">
+      <div v-if="activeTab === 'profile'">
         <span>contexto 1</span>
       </div>
 
-      <div v-if="securityOpen">
-        <span>contexto 2</span>
+      <div v-if="activeTab === 'security'">
+        <h3 class="text-xl font-bold txt-chip-cover">Two-factor authentication</h3>
+
+        <span></span>
       </div>
 
-      <div v-if="notificationOpen">
+      <div v-if="activeTab === 'notification'">
         <span>contexto 3</span>
       </div>
     </div>
@@ -31,53 +33,26 @@
 </template>
 
 <script lang="js">
+import { ref } from 'vue'
 export default {
   name: 'AppView',
 
   setup() {
+    const activeTab = ref('profile') // Use ref for reactive state management
+
+    const openTab = (tabChoose) => {
+      activeTab.value = tabChoose // Update the reactive state
+    }
+
+    const getClassTabSelect = (tabChoose) => {
+      if (activeTab.value === tabChoose) return `flex-1 text-tab bg-tab-select `
+      else return `flex-1 txt-shuttle-gray text-tab`
+    }
+
     return {
-      arrayTabChoose: {
-        profile: 'profile',
-        security: 'security',
-        notification: 'notification'
-      }
-    }
-  },
-
-  methods: {
-    openTab(tabChoose) {
-      this.profileTab = this.arrayTabChoose[tabChoose] === 'profile'
-      this.securityTab = this.arrayTabChoose[tabChoose] === 'security'
-      this.notificationTab = this.arrayTabChoose[tabChoose] === 'notification'
-    }
-  },
-
-  computed: {
-    profileTab: {
-      get() {
-        return this.profileTab
-      },
-      set(value) {
-        this.$emit('update:modelValue', value)
-      }
-    },
-
-    securityTab: {
-      get() {
-        return this.securityTab
-      },
-      set(value) {
-        this.$emit('update:modelValue', value)
-      }
-    },
-
-    notificationTab: {
-      get() {
-        return this.notificationTab
-      },
-      set(value) {
-        this.$emit('update:modelValue', value)
-      }
+      openTab,
+      activeTab,
+      getClassTabSelect
     }
   }
 }
@@ -86,9 +61,16 @@ export default {
 .text-tab {
   padding: 1.2em;
   cursor: pointer;
+  transition: all 0.5s ease-out;
 }
 
 .text-tab:hover {
-  background-color: rgb(0, 255, 255);
+  background-color: #658cc2;
+  color: white;
+}
+
+.bg-tab-select {
+  background-color: #658cc2;
+  color: white;
 }
 </style>
