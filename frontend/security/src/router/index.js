@@ -20,6 +20,12 @@ const router = createRouter({
       path: '/',
       name: 'index',
       component: modules.default.HomeView
+    },
+
+    {
+      path: '/userconfig',
+      name: 'userconfig',
+      component: modules.default.UserConfig
     }
   ]
 })

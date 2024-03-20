@@ -1,10 +1,10 @@
 <template>
   <div>
-    <nav>
+    <nav class="w-full">
       <menu-view />
     </nav>
 
-    <main class="main-app">
+    <main class="main-app w-full">
       <router-view />
     </main>
   </div>
